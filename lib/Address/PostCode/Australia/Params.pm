@@ -1,10 +1,10 @@
-package Address::PostCode::Australia::Place;
+package Address::PostCode::Australia::Params;
 
-$Address::PostCode::Australia::Place::VERSION = '0.03';
+$Address::PostCode::Australia::Params::VERSION = '0.03';
 
 =head1 NAME
 
-Address::PostCode::Australia::Place - Placeholder for 'place' for Address::PostCode::Australia.
+Address::PostCode::Australia::Params - Placeholder for parameters for Address::PostCode::Australia
 
 =head1 VERSION
 
@@ -13,34 +13,56 @@ Version 0.03
 =cut
 
 use 5.006;
+use strict; use warnings;
 use Data::Dumper;
 
-use Moo;
-use namespace::clean;
+use vars qw(@ISA @EXPORT @EXPORT_OK);
 
-has 'id'        => (is => 'ro');
-has 'category'  => (is => 'ro');
-has 'location'  => (is => 'ro');
-has 'latitude'  => (is => 'ro');
-has 'longitude' => (is => 'ro');
-has 'postcode'  => (is => 'ro');
-has 'state'     => (is => 'ro');
+require Exporter;
+@ISA = qw(Exporter);
+@EXPORT_OK = qw(validate);
 
-=head1 METHODS
+sub check_num {
+    my ($num) = @_;
 
-=head2 id()
+    die "ERROR: Invalid NUM data type [$num]"
+        unless (defined $num && $num =~ /^\d+$/);
+};
 
-=head2 category()
+sub check_str {
+    my ($str) = @_;
 
-=head2 location()
+    die "ERROR: Invalid STR data type [$str]"
+        if (defined $str && $str =~ /^\d+$/);
+};
 
-=head2 latitude()
+our $FIELDS = {
+    'postcode' => { check => sub { check_num(@_) }, type => 'd' },
+    'location' => { check => sub { check_str(@_) }, type => 's' },
+    'state'    => { check => sub { check_str(@_) }, type => 's' },
+};
 
-=head2 longitude()
+sub validate {
+    my ($fields, $values) = @_;
 
-=head2 postcode()
+    die "ERROR: Missing params list." unless (defined $values);
 
-=head2 state()
+    die "ERROR: Parameters have to be hash ref" unless (ref($values) eq 'HASH');
+
+    foreach my $field (keys %{$fields}) {
+        die "ERROR: Received invalid param: $field"
+            unless (exists $FIELDS->{$field});
+
+        die "ERROR: Missing mandatory param: $field"
+            if ($fields->{$field} && !exists $values->{$field});
+
+        die "ERROR: Received undefined mandatory param: $field"
+            if ($fields->{$field} && !defined $values->{$field});
+
+	$FIELDS->{$field}->{check}->($values->{$field})
+            if defined $values->{$field};
+    }
+}
 
 =head1 AUTHOR
 
@@ -61,7 +83,7 @@ bug as I make changes.
 
 You can find documentation for this module with the perldoc command.
 
-    perldoc Address::PostCode::Australia::Place
+    perldoc Address::PostCode::Australia::Params
 
 You can also look for information at:
 
@@ -87,7 +109,7 @@ L<http://search.cpan.org/dist/Address-PostCode-Australia/>
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2014 Mohammad S Anwar.
+Copyright (C) 2014 Mohammad S Anwar.
 
 This  program  is  free software; you can redistribute it and/or modify it under
 the  terms  of the the Artistic License (2.0). You may obtain a copy of the full
@@ -125,4 +147,4 @@ OF THE PACKAGE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 =cut
 
-1; # End of Address::PostCode::Australia::Place
+1; # End of Address::PostCode::Australia::Params
